@@ -47,7 +47,7 @@ void 						readMulti(unsigned char reg, unsigned char * dst, unsigned char count
 	I2C1->CR2 &= ~(I2C_CR2_NBYTES)  & (~I2C_CR2_SADD) & (~I2C_CR2_RD_WRN); 	
  	I2C1->CR2 |= (LIS3DH_ID	 << I2C_CR2_SADD_Pos) | (0xff << I2C_CR2_NBYTES_Pos) | I2C_CR2_START;
 	while((I2C1->ISR & I2C_ISR_TC)){}; 	
-	while(!(I2C1->ISR & I2C_ISR_TXE)){}; I2C1->TXDR = reg;	while((I2C1->ISR & I2C_ISR_TC)){}; 	
+	while(!(I2C1->ISR & I2C_ISR_TXE)){}; I2C1->TXDR = reg | 0x80;	while((I2C1->ISR & I2C_ISR_TC)){}; 	
 	while(!(I2C1->ISR & I2C_ISR_TXE)){};
 	I2C1->CR2 |= I2C_CR2_STOP;
 	while(!(I2C1->ISR & I2C_ISR_STOPF)){};
@@ -180,11 +180,7 @@ void readLisData(struct lis3dh* data)																											{//read data
 	int16_t x,y,z;
 	if(data->mode==LIS3DH_I2C_MODE){
 		while((readReg8(LIS3DH_STATUS_REG) & 0x8) == 0 );
-		//readMulti(LIS3DH_OUT_X_L, buf, 6);
-		buf[0]=readReg8(LIS3DH_OUT_X_L);buf[1]=readReg8(LIS3DH_OUT_X_H);
-		buf[2]=readReg8(LIS3DH_OUT_Y_L);buf[3]=readReg8(LIS3DH_OUT_Y_H);
-		buf[4]=readReg8(LIS3DH_OUT_Z_L);buf[5]=readReg8(LIS3DH_OUT_Z_H);
-		
+		readMulti(LIS3DH_OUT_X_L, buf, 6);
 		}
 	else {
 		while((SPI_Read(LIS3DH_STATUS_REG) & 0x8) == 0 );
@@ -232,10 +228,7 @@ void Lis_TEMP_CMD(struct lis3dh* data,unsigned char off_on)																{//AD
 void readLisADC(struct lis3dh* data)																											{//READ ADC data
 	uint8_t adc[6];
 	if(data->mode==LIS3DH_I2C_MODE){
-			//readMulti(LIS3DH_OUT_ADC1_L, adc, 6);
-		adc[0]=readReg8(LIS3DH_OUT_ADC1_L);adc[1]=readReg8(LIS3DH_OUT_ADC1_H);
-		adc[2]=readReg8(LIS3DH_OUT_ADC2_L);adc[3]=readReg8(LIS3DH_OUT_ADC2_H);
-		adc[4]=readReg8(LIS3DH_OUT_ADC3_L);adc[5]=readReg8(LIS3DH_OUT_ADC3_H);
+		readMulti(LIS3DH_OUT_ADC1_L, adc, 6);
 	}
 	else {
 		SPI_Read_Multi(LIS3DH_OUT_ADC1_L, adc, 6);
